@@ -12,28 +12,28 @@ email, password
 google authentication
 */
 export interface IAuthProvider {
-    provider: string; //"google credential"
+    provider: "google" | "credentials"; //"google credential"
     providerId: string;
 }
 
-export enum IsActive{
-    ACTIVE="ACTIVE",
-    INACTIVE="INACTIVE",
-    BLOCKED="BLOCKED"
+export enum IsActive {
+    ACTIVE = "ACTIVE",
+    INACTIVE = "INACTIVE",
+    BLOCKED = "BLOCKED"
 }
 
 export interface IUser {
     name: string;
     email: string;
     password?: string;
-    phone?:string;
+    phone?: string;
     picture?: string;
     address?: string;
     isDeleted?: string;
     isActive?: IsActive;
-    isVrified?: string;
+    isVrified?: boolean;
     role: Role;
     auths: IAuthProvider[];
-    bookings?:Types.ObjectId[];
-    guides?:Types.ObjectId[];
+    bookings?: Types.ObjectId[];
+    guides?: Types.ObjectId[];
 }
