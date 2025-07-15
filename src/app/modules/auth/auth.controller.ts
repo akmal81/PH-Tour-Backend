@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { catchAsync } from "../../utils/catchAsync"
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes";
 import { AuthServices } from "./auth.service";
@@ -8,37 +10,47 @@ import { setAuthCookie } from "../../utils/setCookies";
 import { createUserTokens } from "../../utils/user.Tokens";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
+import passport from "passport";
 
 
 // login and access token 
-const credentialsLogin = catchAsync(async (req: Request, res: Response) => {
+const credentialsLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    const loginInfo = await AuthServices.credentialsLogin(req.body)
+    // const loginInfo = await AuthServices.credentialsLogin(req.body)
+    passport.authenticate("local", async (err: any, user: any, info: any) => {
+
+        if (err) {
+            // return next(err)
+            // console.log("err", err)
+            return next(new AppError(401, err))
+        }
+
+        if (!user) {
+            // return new AppError(401, info.message)
+            return next(new AppError(401, info.message))
+        }
+
+        const userTokens = await createUserTokens(user)
+        // delete user.toObject().password
+        const { password: pass, ...rest } = user.toObject()
 
 
-    //    ser access token in cookies
-    // res.cookie("accessToken",loginInfo.accessToken,{
-    //      httpOnly:true, //must use 
-    // secure:false //must use
-    // })
+        setAuthCookie(res, userTokens)
 
+        sendResponse(res, {
+            success: true,
+            statusCode: httpStatus.OK,
+            message: "User Logged In Successfully",
+            data: {
+                acceessToken: userTokens.accessToken,
+                refreshToken: userTokens.refreshToken,
+                user: rest
 
-    // set refresh in cookies
-    // res.cookie("refreshToken", loginInfo.refreshToken,{
-    //     httpOnly:true, //must use 
-    //     secure:false //must use
+            }
+        })
 
-    // })
-
-    setAuthCookie(res, loginInfo)
-
-    sendResponse(res, {
-        success: true,
-        statusCode: httpStatus.OK,
-        message: "User Logged In Successfully",
-        data: loginInfo
+    })(req, res, next)
     })
-})
 
 // refresh token
 const getNewAccessToken = catchAsync(async (req: Request, res: Response) => {
@@ -105,14 +117,14 @@ const googleCallBackController = catchAsync(async (req: Request, res: Response) 
 
     let redirectTo = req.query.state ? req.query.state as string : ""
 
-    if(redirectTo.startsWith("/")){
+    if (redirectTo.startsWith("/")) {
         redirectTo = redirectTo.slice(1)
     }
 
     // /booking=> booking, => "/" => ""
 
     const user = req.user;
-    
+
 
     if (!user) {
         throw new AppError(httpStatus.NOT_FOUND, "user not found")
