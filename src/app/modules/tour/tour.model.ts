@@ -1,11 +1,11 @@
 import { model, Schema } from "mongoose";
 import { ITour, ITourType } from "./tour.interface";
-import { number} from "zod";
+import { number } from "zod";
 
 
 const tourTypeSchema = new Schema<ITourType>({
-name:{type:String, required:true, unique:true}
-},{timestamps:true})
+    name: { type: String, required: true, unique: true }
+}, { timestamps: true })
 
 export const ToureType = model<ITourType>("ToureType", tourTypeSchema)
 
@@ -26,17 +26,17 @@ const tourSchema = new Schema<ITour>({
     minAge: { type: number },
     division: {
         type: Schema.Types.ObjectId,
-        ref:"Division",
-        required:true
+        ref: "Division",
+        required: true
     },
     tourType: {
         type: Schema.Types.ObjectId,
-        ref:ToureType,
-        required:true
+        ref: ToureType,
+        required: true
     }
 },
     {
         timestamps: true
     })
 
-   export const Tour = model<ITour>("Tour", tourSchema)
+export const Tour = model<ITour>("Tour", tourSchema)
