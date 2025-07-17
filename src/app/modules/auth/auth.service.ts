@@ -1,42 +1,42 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import AppError from "../../errorHelpers/AppError";
-import { IUser } from "../user/user.interface"
+// import { IUser } from "../user/user.interface"
 import httpStatus from "http-status-codes";
 import { User } from "../user/user.model";
 import bcryptjs from "bcryptjs";
 
 import { envVars } from "../../config/env";
-import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/user.Tokens";
+import { createNewAccessTokenWithRefreshToken} from "../../utils/user.Tokens";
 import { JwtPayload } from "jsonwebtoken";
 
-const credentialsLogin = async (payload: Partial<IUser>) => {
-    const { email, password } = payload;
-    const isUserExist = await User.findOne({ email });
+// const credentialsLogin = async (payload: Partial<IUser>) => {
+//     const { email, password } = payload;
+//     const isUserExist = await User.findOne({ email });
 
-    if (!isUserExist) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Emamil does not exsit");
-    }
+//     if (!isUserExist) {
+//         throw new AppError(httpStatus.BAD_REQUEST, "Emamil does not exsit");
+//     }
 
-    const isPasswordMatched = await bcryptjs.compare(password as string, isUserExist.password as string)
+//     const isPasswordMatched = await bcryptjs.compare(password as string, isUserExist.password as string)
 
-    if (!isPasswordMatched) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Incorrect Password");
-    }
+//     if (!isPasswordMatched) {
+//         throw new AppError(httpStatus.BAD_REQUEST, "Incorrect Password");
+//     }
 
-    const userTokens = createUserTokens(isUserExist)
+//     const userTokens = createUserTokens(isUserExist)
 
-    // delete password form isUserExist
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: pass, ...rest } = isUserExist.toObject();
+//     // delete password form isUserExist
+//     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+//     const { password: pass, ...rest } = isUserExist.toObject();
 
-    return {
-        // email: isUserExist.email
-        accessToken: userTokens.accessToken,
-        refreshToken: userTokens.refreshToken,
-        user: rest
-    }
-}
+//     return {
+//         // email: isUserExist.email
+//         accessToken: userTokens.accessToken,
+//         refreshToken: userTokens.refreshToken,
+//         user: rest
+//     }
+// }
 
 const getNewAccessToken = async (refreshToken: string) => {
 
@@ -65,7 +65,7 @@ const resetPassword = async (oldPassword: string, newPassword: string, decodedTo
 
 
 export const AuthServices = {
-    credentialsLogin,
+    // credentialsLogin,
     getNewAccessToken,
     resetPassword
 }

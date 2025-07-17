@@ -4,6 +4,53 @@ import { Strategy as GoogleStrategy, Profile, VerifyCallback } from "passport-go
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
 import { Role } from "../modules/user/user.interface";
+import { Strategy as localStrategy } from "passport-local";
+import bcryptjs from "bcryptjs"
+// import httpStatus from "http-status-codes"
+// import AppError from "../errorHelpers/AppError";
+
+
+passport.use(
+    new localStrategy({
+        usernameField: "email",
+        passwordField: "password"
+    }, async (email: string, password: string, done) => {
+
+        try {
+            const isUserExist = await User.findOne({ email })
+
+            if (!isUserExist) {
+                return done(null, false, { message: "User dose not exist" })
+            }
+
+            // if (!isUserExist) {
+            //     return done("User does not exist")
+            // }
+
+            const isGoogleAuthenticated = isUserExist.auths.some(providerObjects => providerObjects.provider == "google")
+
+            if(isGoogleAuthenticated && !isUserExist.password){
+                return done(null, false, {message: "You have authenticated throw googl. so if you want to login with credentials, then at firest login with google and set a password your gmail and then you can login with email and password."})
+            }
+            // if(isGoogleAuthenticated){
+            //     return done("You have authenticated throw googl. so if you want to login with credentials, then at firest login with google and set a password your gmail and then you can login with email and password.")
+            // }
+
+
+            const isPasswordMatched = await bcryptjs.compare(password as string, isUserExist.password as string)
+
+            if (!isPasswordMatched) {
+                return done(null, false, { message: "Password does not match" })
+            }
+
+            return done(null, isUserExist)
+
+        } catch (error) {
+            console.log(error)
+            done(error)
+        }
+    })
+)
 
 passport.use(
     new GoogleStrategy(
@@ -22,17 +69,17 @@ passport.use(
 
                 let user = await User.findOne({ email });
 
-                if(!user){
+                if (!user) {
                     user = await User.create({
                         email,
                         name: profile.displayName,
-                        picture:profile.photos?.[0].value,
-                        role:Role.USER,
-                        isVrified:true,
-                        auths:[
+                        picture: profile.photos?.[0].value,
+                        role: Role.USER,
+                        isVrified: true,
+                        auths: [
                             {
-                                provider:"google",
-                                providerId:profile.id
+                                provider: "google",
+                                providerId: profile.id
                             }
                         ]
                     })
@@ -60,15 +107,15 @@ passport.use(
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) =>{
+passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) => {
     done(null, user._id)
 })
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-passport.deserializeUser(async(id:string, done:any)=>{
+passport.deserializeUser(async (id: string, done: any) => {
     try {
-        const user =await User.findById(id);
+        const user = await User.findById(id);
         done(null, user)
     } catch (error) {
         console.log(error)
